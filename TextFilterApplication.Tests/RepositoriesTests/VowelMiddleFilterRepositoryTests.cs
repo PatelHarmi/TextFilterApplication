@@ -1,14 +1,20 @@
-﻿using TextFilterApplication.Repositories;
+﻿using Microsoft.Extensions.Logging;
+using Moq;
+using TextFilterApplication.Exceptions;
+using TextFilterApplication.Repositories;
 
 namespace TextFilterApplication.Tests.RepositoriesTests
 {
     public class VowelMiddleFilterRepositoryTests
     {
+        private readonly Mock<ILogger<VowelMiddleFilterRepository>> mockLogger;
+
         private readonly VowelMiddleFilterRepository repository;
 
         public VowelMiddleFilterRepositoryTests()
         {
-            repository = new VowelMiddleFilterRepository();
+            mockLogger = new Mock<ILogger<VowelMiddleFilterRepository>>();
+            repository = new VowelMiddleFilterRepository(mockLogger.Object);
         }
 
         [Theory]
@@ -108,6 +114,28 @@ namespace TextFilterApplication.Tests.RepositoriesTests
 
             // Assert
             Assert.Equal(expected, result);
+        }
+
+        [Fact]
+        public void Apply_ShouldLogErrorAndThrowException_OnFailure()
+        {
+            // Arrange
+            string input = null;
+            mockLogger.Reset();
+
+            // Act & Assert
+            var exception = Assert.Throws<TextFilterException>(() => repository.Apply(input));
+            Assert.Equal("An error occurred during filtering in VowelMiddleFilterRepository.", exception.Message);
+
+            // Verify the logger logs an error
+            mockLogger.Verify(
+                logger => logger.Log(
+                    It.Is<LogLevel>(logLevel => logLevel == LogLevel.Error),
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("An error occurred during filtering in VowelMiddleFilterRepository.")),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception, string>>()),
+                Times.Once);
         }
     }
 }

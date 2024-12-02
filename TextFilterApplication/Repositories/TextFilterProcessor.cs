@@ -1,5 +1,8 @@
 ﻿namespace TextFilterApplication.Repositories
 {
+    /// <summary>
+    /// Filters words based on all 3 filters criteria.
+    /// </summary>
     public class TextFilterProcessor
     {
         private readonly IEnumerable<ITextFilterRepository> filters;

@@ -1,14 +1,20 @@
-﻿using TextFilterApplication.Repositories;
+﻿using Microsoft.Extensions.Logging;
+using Moq;
+using TextFilterApplication.Exceptions;
+using TextFilterApplication.Repositories;
 
 namespace TextFilterApplication.Tests.RepositoriesTests
 {
     public class LengthFilterRepositoryTests
     {
+        private readonly Mock<ILogger<LengthFilterRepository>> mockLogger;
+
         private readonly LengthFilterRepository repository;
 
         public LengthFilterRepositoryTests()
         {
-            repository = new LengthFilterRepository();
+            mockLogger = new Mock<ILogger<LengthFilterRepository>>();
+            repository = new LengthFilterRepository(mockLogger.Object);
         }
 
         [Fact]
@@ -65,6 +71,28 @@ namespace TextFilterApplication.Tests.RepositoriesTests
 
             // Assert
             Assert.Equal(expected, result);
+        }
+
+        [Fact]
+        public void Apply_ShouldLogErrorAndThrowException_OnFailure()
+        {
+            // Arrange
+            string input = null;
+            mockLogger.Reset();
+
+            // Act & Assert
+            var exception = Assert.Throws<TextFilterException>(() => repository.Apply(input));
+            Assert.Equal("An error occurred during filtering in LengthFilterRepository.", exception.Message);
+
+            // Verify the logger logs an error
+            mockLogger.Verify(
+                logger => logger.Log(
+                    It.Is<LogLevel>(logLevel => logLevel == LogLevel.Error),
+                    It.IsAny<EventId>(),
+                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("An error occurred during filtering in LengthFilterRepository.")),
+                    It.IsAny<Exception>(),
+                    It.IsAny<Func<It.IsAnyType, Exception, string>>()),
+                Times.Once);
         }
     }
 }

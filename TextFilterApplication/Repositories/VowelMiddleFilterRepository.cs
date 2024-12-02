@@ -1,10 +1,21 @@
-﻿using System.Text.RegularExpressions;
+﻿using Microsoft.Extensions.Logging;
+using System.Text.RegularExpressions;
 using TextFilterApplication.Exceptions;
 
 namespace TextFilterApplication.Repositories
 {
+    /// <summary>
+    /// Filters words based on vowel in middle of the word criteria.
+    /// </summary>
     public class VowelMiddleFilterRepository : ITextFilterRepository
     {
+        private readonly ILogger<VowelMiddleFilterRepository> _logger;
+
+        public VowelMiddleFilterRepository(ILogger<VowelMiddleFilterRepository> logger)
+        {
+            _logger = logger;
+        }
+
         public string Apply(string input)
         {
             try
@@ -31,6 +42,7 @@ namespace TextFilterApplication.Repositories
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "An error occurred during filtering in VowelMiddleFilterRepository.");
                 throw new TextFilterException("An error occurred during filtering in VowelMiddleFilterRepository.", ex);
             }
         }
